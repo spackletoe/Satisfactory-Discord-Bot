@@ -1,8 +1,8 @@
 {
   "server": {
-    "version": 385279,
-    "online": false,
-    "unreachable": true
+    "version": 495413,
+    "online": true,
+    "unreachable": false
   },
   "players": {}
 }

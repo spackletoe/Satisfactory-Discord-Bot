@@ -136,3 +136,7 @@ dist
 dist/
 build/
 >>>>>>> 85adb928264341f51b187afed1b5e3e1056b58f0
+docker-volumes/db/db.json
+last_result.json
+started_at
+has_build

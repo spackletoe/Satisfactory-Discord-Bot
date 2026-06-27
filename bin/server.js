@@ -183,18 +183,35 @@ client.on('ready', async () => {
   }, pollIntervalMillis);
 
   try {
-    if (!fs.existsSync(process.env.SATISFACTORY_BOT_LOG_LOCATION)) {
-      console.log(`Waiting for log file to exist: ${process.env.SATISFACTORY_BOT_LOG_LOCATION}`);
+    const logPath = process.env.SATISFACTORY_BOT_LOG_LOCATION;
+
+    if (!fs.existsSync(logPath)) {
+      console.log(`Waiting for log file to exist: ${logPath}`);
       await waitOn({
         resources: [
-          process.env.SATISFACTORY_BOT_LOG_LOCATION,
+          logPath,
         ],
       });
     }
 
-    const tail = new Tail(process.env.SATISFACTORY_BOT_LOG_LOCATION, {
+    const logStat = fs.statSync(logPath);
+    if (!logStat.isFile()) {
+      console.error(`SATISFACTORY_BOT_LOG_LOCATION is not a file: ${logPath}`);
+      if (logStat.isDirectory()) {
+        console.error('The path is a directory. With Docker, this usually means the bind-mount source on the host did not exist when the container was created — Docker creates a directory instead of mounting a file.');
+        console.error('Remove the wrongly-created path on the host, point compose.yaml at the real Satisfactory Logs folder, then recreate the container.');
+      }
+      process.exit(4);
+    }
+
+    const tail = new Tail(logPath, {
       fromBeginning: true,
       useWatchFile: (process.env.SATISFACTORY_BOT_LOG_USE_WATCH_FILE === 'true'),
+    });
+
+    tail.on('error', (error) => {
+      console.error('Log file tail error:', error.message);
+      process.exit(3);
     });
 
     tail.on('line', (message) => {
