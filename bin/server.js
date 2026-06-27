@@ -6,6 +6,7 @@ const {
 } = require('discord.js');
 const merge = require('deepmerge');
 const fs = require('fs');
+const path = require('path');
 const { onExit } = require('signal-exit');
 const { Tail } = require('tail');
 const config = require('dotenv-flow').config({
@@ -183,10 +184,27 @@ client.on('ready', async () => {
   }, pollIntervalMillis);
 
   try {
-    const logPath = process.env.SATISFACTORY_BOT_LOG_LOCATION;
+    const logPath = process.env.SATISFACTORY_BOT_LOG_LOCATION?.trim();
+    const logDir = path.dirname(logPath);
+
+    const logMountDiagnostics = () => {
+      if (fs.existsSync(logDir)) {
+        try {
+          const entries = fs.readdirSync(logDir);
+          console.log(`Log directory exists: ${logDir}`);
+          console.log(`Log directory contents: ${entries.length > 0 ? entries.join(', ') : '(empty)'}`);
+        } catch (error) {
+          console.error(`Cannot read log directory ${logDir}: ${error.message}`);
+        }
+      } else {
+        console.error(`Log directory does not exist: ${logDir}`);
+        console.error('Check the compose volume mount and recreate the container after fixing it.');
+      }
+    };
 
     if (!fs.existsSync(logPath)) {
       console.log(`Waiting for log file to exist: ${logPath}`);
+      logMountDiagnostics();
       await waitOn({
         resources: [
           logPath,

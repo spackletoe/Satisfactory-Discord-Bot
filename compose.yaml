@@ -5,10 +5,10 @@ services:
     environment:
       NODE_ENV: production
       SATISFACTORY_BOT_DB_PATH: /usr/src/app/db/db.json
-      SATISFACTORY_BOT_LOG_LOCATION: ${SATISFACTORY_BOT_LOG_LOCATION}
+      SATISFACTORY_BOT_LOG_LOCATION: /logs/FactoryGame.log
     env_file:
       - ./.env
     volumes:
        - ./docker-volumes/db/:/usr/src/app/db/
-       - ${SATISFACTORY_HOST_LOGS_DIR}:/home/steam/SatisfactoryDedicatedServer/FactoryGame/Saved/Logs:ro
+       - /mnt/user/appdata/satisfactory/FactoryGame/Saved/Logs:/logs:ro
     restart: unless-stopped
