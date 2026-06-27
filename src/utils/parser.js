@@ -3,7 +3,7 @@ const logFileCommandLineRegex = /^LogInit: Command Line: (.*)$/;
 const loginRequestRegex = /^\[(.+?)\]\[.+\]LogNet: Login request: .*\?Name=(.*?)? userId: (.*)? platform: .*$/;
 const joinRequestRegex = /^\[(.+?)\]\[.+\]LogNet: Join request: .*\?Name=(.*?)?\?SplitscreenCount=.*$/;
 const joinSucceededRegex = /^\[(.+?)\]\[.+\]LogNet: Join succeeded: (.*?)?$/;
-const connectionCloseRegex = /^\[(.+?)\]\[.+\]LogNet: UNetConnection::Close: .*UniqueId: (.*?)(?:,|\]).*$/;
+const connectionCloseRegex = /^\[(.+?)\]\[.+\]LogNet: UNetConnection::Close: .*UniqueId: (.+?), Channels:.*$/;
 const parseTimestamp = (timestamp) => Date.parse(
   `${timestamp.replace('-', 'T')
     .replace(':', '.')
