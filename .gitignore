@@ -140,3 +140,4 @@ docker-volumes/db/db.json
 last_result.json
 started_at
 has_build
+last_result.json
