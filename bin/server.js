@@ -194,7 +194,13 @@ client.on('ready', async () => {
           console.log(`Log directory exists: ${logDir}`);
           console.log(`Log directory contents: ${entries.length > 0 ? entries.join(', ') : '(empty)'}`);
         } catch (error) {
-          console.error(`Cannot read log directory ${logDir}: ${error.message}`);
+          if (error.code === 'EACCES') {
+            console.error(`Cannot read log directory ${logDir}: permission denied.`);
+            console.error('On Unraid, Satisfactory logs are usually owned by nobody with 770 permissions.');
+            console.error('Ensure compose.yaml group_add includes GIDs 99 and 100, then recreate the container.');
+          } else {
+            console.error(`Cannot read log directory ${logDir}: ${error.message}`);
+          }
         }
       } else {
         console.error(`Log directory does not exist: ${logDir}`);

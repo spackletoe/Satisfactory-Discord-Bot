@@ -11,4 +11,9 @@ services:
     volumes:
        - ./docker-volumes/db/:/usr/src/app/db/
        - /mnt/user/appdata/satisfactory/FactoryGame/Saved/Logs:/logs:ro
+    # Unraid Satisfactory logs are owned by nobody (99) with group-only access (770).
+    # Add supplementary groups so the node user can read the bind-mounted log files.
+    group_add:
+      - "99"
+      - "100"
     restart: unless-stopped
