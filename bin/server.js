@@ -26,6 +26,7 @@ const {
   formatList,
 } = require('../src/utils/utils');
 const { buildJoinMessage, buildLeaveMessage } = require('../src/utils/messages');
+const { setMemberResolver, normalizePlayerName } = require('../src/utils/playerNames');
 const { getNextPurge, willPurge, purgeOldMessages } = require('../src/utils/purge');
 
 const invalidUnknownNamesAndIds = ['INVALID', 'UNKNOWN'];
@@ -46,6 +47,7 @@ const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildMembers,
   ],
 });
 
@@ -69,7 +71,10 @@ const sendMessage = (message) => {
       // channel can be sent to
       && channel.send).forEach((channel) => {
       console.log(`Sending message to: ${channel.guild.name}: ${channel.name}`);
-      channel.send(message)
+      channel.send({
+        content: message,
+        allowedMentions: { parse: [] },
+      })
         .catch((error) => {
           console.error(error);
         });
@@ -159,8 +164,56 @@ const update = async () => {
 
 const getPlayerFromDB = (userId) => db?.players?.[userId];
 
+const getTargetGuilds = () => client.guilds.cache.filter((guild) => (
+  !process.env.SATISFACTORY_BOT_DISCORD_SERVER_NAME
+  || guild.name === process.env.SATISFACTORY_BOT_DISCORD_SERVER_NAME
+));
+
+const findDiscordUserIdForGameName = (gameName) => {
+  const normalizedGameName = normalizePlayerName(gameName);
+  let matchedUserId = null;
+
+  getTargetGuilds().forEach((guild) => {
+    if (matchedUserId) {
+      return;
+    }
+
+    guild.members.cache.forEach((member) => {
+      if (matchedUserId) {
+        return;
+      }
+
+      const candidates = [member.displayName, member.user.username, member.nickname]
+        .filter(Boolean);
+
+      const hasMatch = candidates.some((candidate) => {
+        const normalizedCandidate = normalizePlayerName(candidate);
+        return normalizedCandidate === normalizedGameName
+          || normalizedCandidate.startsWith(normalizedGameName)
+          || normalizedCandidate.includes(normalizedGameName);
+      });
+
+      if (hasMatch) {
+        matchedUserId = member.user.id;
+      }
+    });
+  });
+
+  return matchedUserId;
+};
+
 client.on('ready', async () => {
   const initTime = new Date().getTime();
+
+  try {
+    await Promise.all(getTargetGuilds().map((guild) => guild.members.fetch()));
+    setMemberResolver(findDiscordUserIdForGameName);
+    console.log('Guild member list loaded for colored player names.');
+  } catch (error) {
+    setMemberResolver(findDiscordUserIdForGameName);
+    console.error('Unable to load guild members for colored player names. Enable the Server Members Intent in the Discord Developer Portal, or set SATISFACTORY_BOT_PLAYER_DISCORD_* values in .env.');
+    console.error(error.message);
+  }
 
   if (willPurge()) {
     if (process.env.SATISFACTORY_BOT_PURGE_DISCORD_CHANNEL_ON_STARTUP === 'true') {

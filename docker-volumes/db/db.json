@@ -4,5 +4,13 @@
     "online": true,
     "unreachable": false
   },
-  "players": {}
+  "players": {
+    "Epic:2 (ForeignId=[Type=1 Handle=1 RepData=[03D4183733D5F1476E925F5BE04BFC8D570002C7630ECB4251B7B557B06D9F891A])": {
+      "userId": "Epic:2 (ForeignId=[Type=1 Handle=1 RepData=[03D4183733D5F1476E925F5BE04BFC8D570002C7630ECB4251B7B557B06D9F891A])",
+      "name": "Darth McFraser",
+      "joinRequested": 1,
+      "joined": 1,
+      "joinTime": 1782619578474
+    }
+  }
 }
