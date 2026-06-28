@@ -23,11 +23,9 @@ const { parse } = require('../src/utils/parser');
 const {
   getDefaultDatabase,
   getOnlinePlayers,
-  getTimestamp,
   formatList,
-  formatMinutes,
-  formatPlayers,
 } = require('../src/utils/utils');
+const { buildJoinMessage, buildLeaveMessage } = require('../src/utils/messages');
 const { getNextPurge, willPurge, purgeOldMessages } = require('../src/utils/purge');
 
 const invalidUnknownNamesAndIds = ['INVALID', 'UNKNOWN'];
@@ -311,9 +309,11 @@ client.on('ready', async () => {
               // notify of each new join
               if (data.timestamp >= initTime && (process.env.SATISFACTORY_BOT_IGNORE_POLL_STATE_WHEN_MESSAGING !== 'false' || db?.server?.online)) {
                 const onlinePlayers = getOnlinePlayers(db);
-                let string = `:astronaut: **${onlinePlayers.length}** of ${process.env.SATISFACTORY_BOT_SERVER_MAX_PLAYERS} players online${(onlinePlayers.length > 0 ? `: **${formatPlayers(onlinePlayers)}**` : '')} (${getTimestamp()}).\n`;
-                string += `    :arrow_right: **${data.name}** just joined the server.`;
-                sendMessage(string);
+                sendMessage(buildJoinMessage(
+                  data.name,
+                  onlinePlayers,
+                  process.env.SATISFACTORY_BOT_SERVER_MAX_PLAYERS,
+                ));
                 if (db?.server?.online) {
                   client.user.setActivity(`online: ${getOnlinePlayers(db).length}/${process.env.SATISFACTORY_BOT_SERVER_MAX_PLAYERS}`);
                 }
@@ -339,9 +339,12 @@ client.on('ready', async () => {
                 const onlinePlayers = getOnlinePlayers(db);
                 const playTimeInMinutes = Math
                   .round((new Date().getTime() - leftPlayerJoinTime) / 60000);
-                let string = `:astronaut: **${onlinePlayers.length}** of ${process.env.SATISFACTORY_BOT_SERVER_MAX_PLAYERS} players online${(onlinePlayers.length > 0 ? `: **${formatPlayers(onlinePlayers)}**` : '')} (${getTimestamp()}).\n`;
-                string += `    :arrow_left: **${leftPlayerName}** just left the server after playing for **${formatMinutes(playTimeInMinutes)}**.`;
-                sendMessage(string);
+                sendMessage(buildLeaveMessage(
+                  leftPlayerName,
+                  playTimeInMinutes,
+                  onlinePlayers,
+                  process.env.SATISFACTORY_BOT_SERVER_MAX_PLAYERS,
+                ));
                 if (db?.server?.online) {
                   client.user.setActivity(`online: ${getOnlinePlayers(db).length}/${process.env.SATISFACTORY_BOT_SERVER_MAX_PLAYERS}`);
                 }
