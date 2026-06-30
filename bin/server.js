@@ -38,6 +38,8 @@ const pollIntervalMillis = Math.max(
 ) * 60000;
 
 let intervalTimer = null;
+let logTail = null;
+let isStarting = false;
 
 let db = getDefaultDatabase();
 
@@ -202,7 +204,13 @@ const findDiscordUserIdForGameName = (gameName) => {
   return matchedUserId;
 };
 
-client.on('ready', async () => {
+client.once('ready', async () => {
+  if (isStarting) {
+    console.log('Startup already in progress, ignoring duplicate ready event.');
+    return;
+  }
+  isStarting = true;
+
   const initTime = new Date().getTime();
 
   try {
@@ -279,10 +287,16 @@ client.on('ready', async () => {
       process.exit(4);
     }
 
+    if (logTail) {
+      console.log('Log tail already running, skipping duplicate setup.');
+      return;
+    }
+
     const tail = new Tail(logPath, {
       fromBeginning: true,
       useWatchFile: (process.env.SATISFACTORY_BOT_LOG_USE_WATCH_FILE === 'true'),
     });
+    logTail = tail;
 
     tail.on('error', (error) => {
       console.error('Log file tail error:', error.message);
@@ -443,6 +457,10 @@ process.on('beforeExit', (code) => {
 
 onExit(() => {
   console.log('Logging out');
+  if (logTail) {
+    logTail.unwatch();
+    logTail = null;
+  }
   client.destroy();
 });
 

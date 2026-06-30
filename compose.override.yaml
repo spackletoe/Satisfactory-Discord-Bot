@@ -1,3 +1,7 @@
-# Override file for UI labels (icon, webui, shell)
-# This file is managed by Compose Manager
-services: {}
+services:
+  server:
+    labels:
+      net.unraid.docker.managed: 'composeman'
+      net.unraid.docker.icon: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/satisfactory.png'
+      net.unraid.docker.webui: ''
+      net.unraid.docker.shell: ''
